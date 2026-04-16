@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SecureTransfer — Encrypted File Sharing</title>
+  <meta name="description" content="End-to-end encrypted peer-to-peer file transfer. Share files securely with a unique room code — no account needed." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Ambient background -->
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="logo" onclick="goHome()" style="cursor:pointer">
+      <span class="logo-icon">🔐</span>
+      <span class="logo-text">SecureTransfer</span>
+    </div>
+    <div class="header-badge">AES-256-GCM · Zero Knowledge</div>
+  </header>
+
+  <main class="main">
+
+    <!-- ═══════════════════════════════════════════ VIEW: HOME ══ -->
+    <section id="view-home" class="view active">
+      <div class="hero">
+        <div class="hero-badge">✨ Browser-native encryption — no plugins needed</div>
+        <h1 class="hero-title">Encrypted File Transfer<br><span class="gradient-text">Across Any Network</span></h1>
+        <p class="hero-sub">Files are encrypted in your browser before being relayed. Our server never sees your data.</p>
+
+        <div class="mode-cards">
+          <button class="mode-card" id="btn-go-send">
+            <div class="mode-icon-wrap send-icon">📤</div>
+            <div class="mode-card-title">Send Files</div>
+            <div class="mode-card-desc">Create a secure session and share the code with your recipient</div>
+            <div class="mode-arrow">Create Session →</div>
+          </button>
+          <button class="mode-card" id="btn-go-receive">
+            <div class="mode-icon-wrap recv-icon">📥</div>
+            <div class="mode-card-title">Receive Files</div>
+            <div class="mode-card-desc">Enter the session code from the sender to receive files securely</div>
+            <div class="mode-arrow">Join Session →</div>
+          </button>
+        </div>
+
+        <div class="features-row">
+          <div class="feature-pill">🔒 AES-256-GCM</div>
+          <div class="feature-pill">🚫 No File Storage</div>
+          <div class="feature-pill">📦 Multiple Files</div>
+          <div class="feature-pill">🌐 Works Globally</div>
+          <div class="feature-pill">🆓 Free & Open</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════ VIEW: SENDER ══ -->
+    <section id="view-sender" class="view">
+
+      <div class="view-nav">
+        <button class="back-btn" id="sender-back">← Back</button>
+        <h2 class="view-title">Send Files</h2>
+        <div></div>
+      </div>
+
+      <!-- STEP 1 – Create session -->
+      <div class="step" id="sender-s1">
+        <div class="card">
+          <div class="card-heading">
+            <span class="step-badge">Step 1</span>
+            <span class="card-title">Create Secure Session</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Encryption Password</label>
+            <div class="input-wrap">
+              <input id="sender-pass" type="password" class="input" placeholder="Choose a strong password…" autocomplete="new-password" />
+              <button class="eye-btn" data-target="sender-pass" title="Toggle visibility">👁</button>
+            </div>
+            <div class="form-hint">Share this password with the receiver via a separate channel (e.g. text message)</div>
+          </div>
+          <div id="sender-s1-error" class="error-msg hidden"></div>
+          <button class="btn-primary" id="btn-create-session">Create Session</button>
+        </div>
+      </div>
+
+      <!-- STEP 2 – Share code, wait for receiver -->
+      <div class="step hidden" id="sender-s2">
+        <div class="card">
+          <div class="card-heading">
+            <span class="step-badge">Step 2</span>
+            <span class="card-title">Share This Code</span>
+          </div>
+          <div class="code-display-wrap">
+            <div class="code-display" id="display-code">------</div>
+            <button class="copy-btn" id="copy-btn">📋 Copy</button>
+          </div>
+          <div class="hint-row">Give this code to the receiver. The session expires when you close this tab.</div>
+          <div class="waiting-row">
+            <div class="pulse-dot"></div>
+            <span id="sender-s2-status">Waiting for receiver to join…</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3 – Drop files and send -->
+      <div class="step hidden" id="sender-s3">
+        <div class="connected-banner">✅ Receiver connected! Add files and send.</div>
+
+        <div class="drop-zone" id="drop-zone" tabindex="0" role="button" aria-label="Drop files here or click to browse">
+          <div class="drop-inner">
+            <div class="drop-emoji">📂</div>
+            <div class="drop-title">Drag &amp; Drop Files Here</div>
+            <div class="drop-or">— or —</div>
+            <label class="btn-secondary">
+              Browse Files
+              <input type="file" id="file-input" multiple hidden />
+            </label>
+          </div>
+          <div class="file-list" id="sender-file-list"></div>
+        </div>
+
+        <div id="sender-s3-error" class="error-msg hidden"></div>
+        <button class="btn-primary btn-big" id="btn-send-files" disabled>🚀 Send Files</button>
+      </div>
+
+      <!-- STEP 4 – Transfer progress -->
+      <div class="step hidden" id="sender-s4">
+        <div class="card">
+          <div class="card-heading">
+            <span class="card-title">📤 Sending Files</span>
+          </div>
+          <div class="transfer-list" id="sender-progress-list"></div>
+        </div>
+      </div>
+
+      <!-- STEP 5 – Done -->
+      <div class="step hidden" id="sender-s5">
+        <div class="card success-card">
+          <div class="big-icon">🎉</div>
+          <div class="success-title">Transfer Complete!</div>
+          <div class="success-sub">All files were encrypted and sent successfully.</div>
+          <button class="btn-primary" id="btn-sender-new">Start New Transfer</button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ═════════════════════════════════════════ VIEW: RECEIVER ══ -->
+    <section id="view-receiver" class="view">
+
+      <div class="view-nav">
+        <button class="back-btn" id="receiver-back">← Back</button>
+        <h2 class="view-title">Receive Files</h2>
+        <div></div>
+      </div>
+
+      <!-- STEP 1 – Join session -->
+      <div class="step" id="receiver-s1">
+        <div class="card">
+          <div class="card-heading">
+            <span class="step-badge">Step 1</span>
+            <span class="card-title">Join Session</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Session Code</label>
+            <input id="receiver-code" type="text" class="input code-input" placeholder="e.g. AB3F7K" maxlength="6" autocomplete="off" spellcheck="false" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Decryption Password</label>
+            <div class="input-wrap">
+              <input id="receiver-pass" type="password" class="input" placeholder="Password provided by the sender…" autocomplete="current-password" />
+              <button class="eye-btn" data-target="receiver-pass" title="Toggle visibility">👁</button>
+            </div>
+          </div>
+          <div id="receiver-s1-error" class="error-msg hidden"></div>
+          <button class="btn-primary" id="btn-join-session">Join Session</button>
+        </div>
+      </div>
+
+      <!-- STEP 2 – Waiting for files -->
+      <div class="step hidden" id="receiver-s2">
+        <div class="card">
+          <div class="connected-banner">✅ Connected to session!</div>
+          <div class="waiting-row" style="margin-top:1.5rem">
+            <div class="pulse-dot"></div>
+            <span>Waiting for the sender to send files…</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3 – Receiving files -->
+      <div class="step hidden" id="receiver-s3">
+        <div class="card">
+          <div class="card-heading">
+            <span class="card-title">📥 Received Files</span>
+          </div>
+          <div class="transfer-list" id="receiver-file-list"></div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    🔐 SecureTransfer — Encryption happens entirely in your browser. Files are never stored on any server.
+  </footer>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
